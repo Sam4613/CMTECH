@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CMTECH — Creative Production Agency</title>
+
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Observer.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@0,900;1,900&display=swap");
+
+        :root {
+            --bg: #000;
+            --ink: #0b0b0b;
+            --text: #fff;
+            --muted: rgba(255, 255, 255, .42);
+            --border: rgba(255, 255, 255, .08);
+            --cream: #fdf8f0;
+            /* cream-white booking */
+            --cream-2: #f7efe1;
+            --serif: "Playfair Display", serif;
+            --sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+            --padX: 2rem;
+            --padY: 6rem;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            scroll-behavior: initial;
+            opacity: 0;
+            transition: opacity 1s ease-out;
+            min-height: 100vh;
+        }
+
+        /* Mode Management */
+        body.is-physics {
+            overflow: hidden !important;
+            height: 100vh;
+        }
+
+        body.is-normal {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            height: auto;
+        }
+
+        body.loaded {
+            opacity: 1;
+        }
+
+        .serif {
+            font-family: var(--serif);
+        }
+
+        /* UI */
+        #custom-cursor {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            mix-blend-mode: difference;
+            transform: translate(-50%, -50%);
+            will-change: transform, width, height, background, backdrop-filter;
+        }
+
+        #custom-cursor.active {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
+        }
+
+        #scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 1px;
+            width: 100%;
+            background: #fff;
+            z-index: 9998;
+            transform-origin: left;
+            transform: scaleX(0);
+        }
+
+        /* Nav */
+        nav {
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .3em;
+            user-select: none;
+        }
+
+        .nav-link {
+            position: relative;
+            padding-bottom: 4px;
+        }
+
+        .nav-link::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 0;
+            height: 1px;
+            background: #fff;
+            transition: width .4s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link:hover {
+            color: rgba(255, 255, 255, 1);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Buttons */
+        .pill-btn {
+            padding: .7rem 1.8rem;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            transition: all .4s cubic-bezier(.23, 1, .32, 1);
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .pill-btn--outline {
+            border-color: rgba(255, 255, 255, .20);
+            color: #fff;
+            background: transparent;
+        }
+
+        .pill-btn--white {
+            background: #fff;
+            color: #000;
+        }
+
+        .pill-btn:hover {
+            transform: scale(1.05);
+            background: #fff;
+            color: #000;
+        }
+
+        /* ===== Sticky Stack Layout =====
+       Portfolio stays tall with internal sticky.
+       The other sections are stacked sticky 100vh.
+    */
+        .stack-section {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            width: 100%;
+            overflow: visible;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: var(--padY) var(--padX);
+            isolation: isolate;
+        }
+
+        /* Mobile: avoid content getting cut off */
+        @media (max-width: 768px) {
+            .stack-section {
+                position: relative;
+                height: auto;
+                min-height: 100vh;
+                overflow: visible;
+            }
+        }
+
+        /* ===== Portfolio (Works) ===== */
+        #section-portfolio {
+            position: relative;
+            height: 400vh;
+            width: 100%;
+            background: #000;
+        }
+
+        #section-portfolio .portfolio-sticky {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+            opacity: 0;
+        }
+
+        .slide-bg {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+        }
+
+        .slide-bg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transform: scale(1.02);
+        }
+
+        .slide-content {
+            position: relative;
+            z-index: 10;
+        }
+
+        .slide-title {
+            font-family: var(--serif);
+            font-size: clamp(3.2rem, 9vw, 7.2rem);
+            font-style: italic;
+            letter-spacing: -.02em;
+            line-height: 1;
+        }
+
+        .slide-overlay {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.62));
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .brand-section,
+        #section-philosophy {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #000;
+            visibility: hidden;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .brand-section.active-physics,
+        #section-philosophy.active-physics {
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .brand-section.bouncing {
+            animation: springBounce 1.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes springBounce {
+            0% {
+                transform: translateY(0) scale(1);
+            }
+
+            15% {
+                transform: translateY(-50px) scale(1.1);
+            }
+
+            30% {
+                transform: translateY(30px) scale(0.93);
+            }
+
+            45% {
+                transform: translateY(-20px) scale(1.05);
+            }
+
+            60% {
+                transform: translateY(12px) scale(0.97);
+            }
+
+            75% {
+                transform: translateY(-6px) scale(1.02);
+            }
+
+            90% {
+                transform: translateY(3px) scale(0.99);
+            }
+
+            100% {
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .brand-bg {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+        }
+
+        .brand-bg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transform: scale(1.1);
+            will-change: transform;
+        }
+
+        .brand-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.4) 50%, rgba(0, 0, 0, 0.8));
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .brand-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 4rem;
+            max-width: 900px;
+            width: 90%;
+            opacity: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            will-change: transform, opacity;
+        }
+
+        .brand-title {
+            font-family: var(--serif);
+            font-size: clamp(4rem, 12vw, 10rem);
+            font-style: italic;
+            letter-spacing: -.03em;
+            line-height: 0.9;
+            margin-bottom: 2rem;
+            color: #fff;
+            text-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .brand-subtitle {
+            font-size: clamp(10px, 1vw, 12px);
+            text-transform: uppercase;
+            letter-spacing: .4em;
+            opacity: .5;
+            font-weight: 900;
+        }
+
+
+        /* ===== Collective ===== */
+
+        /* ===== Collective ===== */
+        #section-collective {
+            background: #000;
+        }
+
+        .inst-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 4rem 2rem;
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .team-card {
+            border-top: 1px solid var(--border);
+            padding-top: 2rem;
+            transition: opacity .3s ease;
+        }
+
+        .team-card:hover {
+            opacity: .6;
+        }
+
+        .team-name {
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: .4rem;
+            letter-spacing: .08em;
+        }
+
+        .team-role {
+            font-size: 9px;
+            color: var(--muted);
+            margin-bottom: .8rem;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+        }
+
+        .team-email {
+            font-size: 10px;
+            color: #4a9eff;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+
+        /* ===== Contact ===== */
+        #section-contact {
+            background: #000;
+            z-index: 10;
+            justify-content: space-between;
+        }
+
+        .contact-top-bar {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            align-items: center;
+            width: 100%;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            margin-bottom: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .contact-massive-heading {
+            font-family: var(--serif);
+            font-size: clamp(6.5rem, 24vw, 22rem);
+            font-weight: 400;
+            line-height: .8;
+            letter-spacing: -.02em;
+            text-align: center;
+        }
+
+        .contact-team-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 2rem;
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .contact-team-item {
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .contact-team-name {
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .contact-team-role {
+            font-size: 9px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .16em;
+        }
+
+        .contact-team-email {
+            font-size: 10px;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            opacity: .6;
+            transition: opacity .3s;
+        }
+
+        .contact-team-email:hover {
+            opacity: 1;
+        }
+
+        .contact-bottom-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-top: 3.5rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .2em;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Deck is clipped inside Contact => cannot bleed out */
+        .deck-clip {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #card-deck {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 10px;
+            height: 10px;
+            perspective: 1200px;
+            transform-style: preserve-3d;
+            visibility: hidden;
+            opacity: 0;
+            will-change: transform, opacity;
+        }
+
+        .deck-card {
+            position: absolute;
+            width: 400px;
+            height: 540px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 40px 120px rgba(0, 0, 0, .6);
+            background: #222;
+            will-change: transform, z-index, opacity, box-shadow;
+            transform-origin: center center;
+            opacity: 0;
+            display: block;
+            pointer-events: none;
+        }
+
+        .deck-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* ===== Booking (Cream White) ===== */
+        #section-booking {
+            background: linear-gradient(180deg, var(--cream), var(--cream-2));
+            color: var(--ink);
+            z-index: 20;
+            justify-content: center;
+        }
+
+        #section-booking .pill-btn--outline {
+            border-color: rgba(0, 0, 0, .18);
+            color: #000;
+            background: transparent;
+        }
+
+        #section-booking .pill-btn--outline:hover {
+            background: #000;
+            color: #fff;
+        }
+
+        .booking-title {
+            font-family: var(--serif);
+            font-size: clamp(3.6rem, 9vw, 6.8rem);
+            font-style: italic;
+            text-align: center;
+            margin: 0 0 1rem;
+            letter-spacing: -.02em;
+        }
+
+        .booking-sub {
+            text-align: center;
+            max-width: 760px;
+            margin: 0 auto 3rem;
+            font-size: 1.05rem;
+            color: rgba(0, 0, 0, .62);
+        }
+
+        .booking-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 2rem;
+        }
+
+        .booking-card {
+            background: rgba(255, 255, 255, .86);
+            border: 1px solid rgba(0, 0, 0, .10);
+            color: var(--ink);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 30px 90px rgba(0, 0, 0, .12);
+            backdrop-filter: blur(6px);
+        }
+
+        .step-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .3em;
+            opacity: .55;
+            margin-bottom: .75rem;
+            font-weight: 900;
+        }
+
+        .step-title {
+            font-size: 1.4rem;
+            font-weight: 900;
+            margin-bottom: 1.25rem;
+            letter-spacing: -.01em;
+        }
+
+        /* Calendar (cream) */
+        .calendar {
+            border: 1px solid rgba(0, 0, 0, .12);
+            border-radius: 18px;
+            padding: 1.15rem;
+            background: rgba(255, 255, 255, .70);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .calendar-nav button {
+            width: 30px;
+            height: 30px;
+            border-radius: 999px;
+            background: transparent;
+            border: 1px solid rgba(0, 0, 0, .18);
+            color: #000;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .calendar-week {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            text-align: center;
+            font-size: 9px;
+            opacity: .6;
+            margin-bottom: .5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .14em;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 6px;
+        }
+
+        .day {
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all .2s ease;
+            background: rgba(0, 0, 0, .05);
+            border: 1px solid rgba(0, 0, 0, .06);
+            user-select: none;
+        }
+
+        .day.empty {
+            background: transparent;
+            border-color: transparent;
+            cursor: default;
+        }
+
+        .day.disabled {
+            opacity: .28;
+            pointer-events: none;
+        }
+
+        .day:hover,
+        .day.selected {
+            background: #000;
+            color: #fff;
+            border-color: #000;
+        }
+
+        /* Time */
+        .time-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: .75rem;
+        }
+
+        .time-slot {
+            padding: .95rem;
+            border-radius: 14px;
+            border: 1px solid rgba(0, 0, 0, .16);
+            text-align: center;
+            font-size: 11px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all .2s ease;
+            background: rgba(255, 255, 255, .75);
+            user-select: none;
+        }
+
+        .time-slot:hover,
+        .time-slot.selected {
+            background: #000;
+            color: #fff;
+            border-color: #000;
+        }
+
+        /* Confirm */
+        .confirm-box {
+            background: rgba(0, 0, 0, .04);
+            border: 1px solid rgba(0, 0, 0, .08);
+            border-radius: 14px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .confirm-btn {
+            width: 100%;
+            padding: 1.1rem;
+            background: #000;
+            color: #fff;
+            border-radius: 14px;
+            font-weight: 900;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            border: 1px solid #000;
+            transition: transform .2s ease, opacity .2s ease;
+        }
+
+        .confirm-btn:hover {
+            transform: translateY(-1px);
+            opacity: .92;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+
+            .inst-grid,
+            .contact-team-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .booking-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .deck-card {
+                width: 320px;
+                height: 440px;
+            }
+
+            .contact-top-bar {
+                grid-template-columns: 1fr;
+                text-align: center;
+                row-gap: 1rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+
+            .inst-grid,
+            .contact-team-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .deck-card {
+                width: 260px;
+                height: 360px;
+            }
+
+            .contact-bottom-bar {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body class="select-none lenis">
+    <!-- UI -->
+    <div id="custom-cursor"></div>
+    <div id="scroll-progress"></div>
+
+    <!-- NAV -->
+    <nav class="fixed top-0 w-full p-8 md:p-12 flex justify-between items-center z-[500] mix-blend-difference">
+        <div class="flex gap-12">
+            <a href="#section-hero" class="nav-link">Home</a>
+            <a href="#section-nexus" class="nav-link">Works</a>
+        </div>
+
+        <div class="flex gap-12">
+            <a href="#section-contact" class="nav-link">Contact</a>
+            <a href="#section-booking" class="nav-link">Booking</a>
+        </div>
+    </nav>
+
+    <main>
+        <!-- HERO SECTION -->
+        <section id="section-hero" class="brand-section" data-brand="hero">
+            <div class="brand-overlay"></div>
+            <div class="brand-bg">
+                <img src="assets/hero.png" alt="Snashworld">
+            </div>
+            <div class="brand-content">
+                <div class="brand-label">Est. 2026</div>
+                <h1 class="brand-title serif italic">CM TECH</h1>
+                <p class="brand-subtitle">Architecting Cinematic Emotions</p>
+                <div
+                    class="absolute bottom-12 left-1/2 -translate-x-1/2 text-[9px] uppercase tracking-[0.5em] opacity-40 font-bold">
+                    Scroll To Explore — ⌄</div>
+            </div>
+        </section>
+        <!-- HERITAGE SECTION 1: NEXUS -->
+        <section id="section-nexus" class="brand-section" data-brand="nexus">
+            <div class="brand-overlay"></div>
+            <div class="brand-bg">
+                <img src="assets/nexus.png" alt="Nexus">
+            </div>
+            <div class="brand-content">
+                <h1 class="brand-title serif italic">The Nexus</h1>
+                <p class="brand-subtitle">The heartbeat of cinematic innovation.</p>
+                <div
+                    class="absolute bottom-8 left-1/2 -translate-x-1/2 text-[9px] uppercase tracking-[0.4em] opacity-40 font-bold">
+                    Scroll ↓</div>
+            </div>
+        </section>
+
+        <!-- HERITAGE SECTION 2: VISION -->
+        <section id="section-vision" class="brand-section" data-brand="vision">
+            <div class="brand-overlay"></div>
+            <div class="brand-bg">
+                <img src="assets/vision.png" alt="Vision">
+            </div>
+            <div class="brand-content">
+                <h1 class="brand-title serif italic">Pure Vision</h1>
+                <p class="brand-subtitle">Minimalist clarity, maximalist impact.</p>
+            </div>
+        </section>
+
+        <!-- HERITAGE SECTION 3: MOTION -->
+        <section id="section-motion" class="brand-section" data-brand="motion">
+            <div class="brand-overlay"></div>
+            <div class="brand-bg">
+                <img src="assets/motion.png" alt="Motion">
+            </div>
+            <div class="brand-content">
+                <h1 class="brand-title serif italic">Infinite Motion</h1>
+                <p class="brand-subtitle">Architecting the flow of speed and light.</p>
+            </div>
+        </section>
+
+        <!-- PHILOSOPHY SECTION -->
+        <section id="section-philosophy" class="brand-section" data-brand="philosophy" style="background: #000;">
+            <div class="brand-content">
+                <p class="font-serif italic text-3xl md:text-5xl leading-tight text-center max-w-4xl">
+                    "We believe that <span class="opacity-50">cinematic storytelling</span> is the highest form of <span
+                        class="underline underline-offset-[12px] decoration-white/10">human connection</span>."
+                </p>
+            </div>
+        </section>
+
+        <!-- CONTACT (sticky stack; deck clipped, zero bleed) -->
+        <section id="section-contact" class="stack-section" style="background: #000;">
+            <!-- clipped deck layer -->
+            <div class="deck-clip" aria-hidden="true">
+                <div id="card-deck">
+                    <div class="deck-card"><img src="assets/team1.png" alt="Antoine Stora" /></div>
+                    <div class="deck-card"><img src="assets/team2.png" alt="Maxime Coisy" /></div>
+                    <div class="deck-card"><img src="assets/team3.png" alt="Anastasia Sebban" /></div>
+                    <div class="deck-card"><img src="assets/team4.png" alt="Christelle Lelièvre" /></div>
+                    <div class="deck-card"><img src="assets/team5.png" alt="Angèle Lemaire" /></div>
+                </div>
+            </div>
+
+            <div class="contact-top-bar">
+                <div id="inst-time-final">INDIA 08:30 AM</div>
+
+                <div class="flex justify-center gap-4">
+                    <a href="mailto:CONTACT@CMTECH.COM" class="pill-btn pill-btn--outline">CONTACT@CMTECH.COM</a>
+                    <a href="#section-booking" class="pill-btn pill-btn--white">Contactez-nous</a>
+                </div>
+
+                <div class="text-right opacity-40">1<sup>er</sup> rue Morère — INDIA 14<sup>e</sup></div>
+            </div>
+
+            <div class="relative flex justify-center items-center py-10" id="contact-shuffle-trigger">
+                <h1 class="contact-massive-heading pointer-events-none z-1">Contact</h1>
+            </div>
+
+            <div class="contact-team-grid">
+                <div class="contact-team-item">
+                    <div class="contact-team-name">Antoine Stora</div>
+                    <div class="contact-team-role">Partner</div>
+                    <a href="mailto:antoine@cmtech.com" class="contact-team-email">antoine@cmtech.com</a>
+                </div>
+                <div class="contact-team-item">
+                    <div class="contact-team-name">Maxime Coisy</div>
+                    <div class="contact-team-role">Partner</div>
+                    <a href="mailto:maxime@cmtech.com" class="contact-team-email">maxime@cmtech.com</a>
+                </div>
+                <div class="contact-team-item">
+                    <div class="contact-team-name">Anastasia Sebban</div>
+                    <div class="contact-team-role">Brand content</div>
+                    <a href="mailto:anastasia@cmtech.com" class="contact-team-email">anastasia@cmtech.com</a>
+                </div>
+                <div class="contact-team-item">
+                    <div class="contact-team-name">Christelle Lelievre</div>
+                    <div class="contact-team-role">Corporate & Live</div>
+                    <a href="mailto:christelle@cmtech.com" class="contact-team-email">christelle@cmtech.com</a>
+                </div>
+                <div class="contact-team-item">
+                    <div class="contact-team-name">Angèle Lemaire</div>
+                    <div class="contact-team-role">Corporate & Live</div>
+                    <a href="mailto:angele@cmtech.com" class="contact-team-email">angele@cmtech.com</a>
+                </div>
+            </div>
+
+            <div class="contact-bottom-bar">
+                <div class="flex items-center gap-2"><span class="opacity-40">⌄</span> FR</div>
+                <div class="flex gap-12">
+                    <a href="https://instagram.com" target="_blank" rel="noreferrer"
+                        class="hover:opacity-50 transition-opacity">Instagram</a>
+                    <a href="https://linkedin.com" target="_blank" rel="noreferrer"
+                        class="hover:opacity-50 transition-opacity">LinkedIn</a>
+                </div>
+                <div class="opacity-60">© 2026 CMTECH</div>
+            </div>
+        </section>
+
+        <!-- BOOKING (sticky stack; cream white) -->
+        <section id="section-booking" class="stack-section">
+            <div class="text-center">
+                <h1 class="booking-title">Book Your Call</h1>
+                <p class="booking-sub">Choose a date and time. Our team will reach out to discuss your vision.</p>
+            </div>
+
+            <div class="booking-grid">
+                <!-- Step 1 -->
+                <div class="booking-card">
+                    <div class="step-label">Step 01</div>
+                    <div class="step-title">Choose Date</div>
+
+                    <div class="calendar">
+                        <div class="calendar-header">
+                            <span id="cal-label"></span>
+                            <div class="calendar-nav flex gap-2">
+                                <button id="prev" aria-label="Previous month">‹</button>
+                                <button id="next" aria-label="Next month">›</button>
+                            </div>
+                        </div>
+
+                        <div class="calendar-week">
+                            <div>Mon</div>
+                            <div>Tue</div>
+                            <div>Wed</div>
+                            <div>Thu</div>
+                            <div>Fri</div>
+                            <div>Sat</div>
+                            <div>Sun</div>
+                        </div>
+
+                        <div class="calendar-days" id="calendar"></div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="booking-card" id="time-card" style="opacity:.35; pointer-events:none">
+                    <div class="step-label">Step 02</div>
+                    <div class="step-title">Pick Time</div>
+
+                    <div class="time-grid">
+                        <div class="time-slot">09:00 AM</div>
+                        <div class="time-slot">10:30 AM</div>
+                        <div class="time-slot">01:00 PM</div>
+                        <div class="time-slot">02:30 PM</div>
+                        <div class="time-slot">04:00 PM</div>
+                        <div class="time-slot">05:30 PM</div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="booking-card">
+                    <div class="step-label">Step 03</div>
+                    <div class="step-title">Confirm</div>
+
+                    <div class="confirm-box">
+                        <div class="text-xs opacity-60 uppercase tracking-widest">Selected Date</div>
+                        <div class="font-bold" id="confirm-date">—</div>
+                    </div>
+
+                    <div class="confirm-box">
+                        <div class="text-xs opacity-60 uppercase tracking-widest">Selected Time</div>
+                        <div class="font-bold" id="confirm-time">—</div>
+                    </div>
+
+                    <button class="confirm-btn" id="confirm-btn">Confirm Booking →</button>
+
+                    <p class="text-xs mt-3 opacity-60">
+                        By confirming, you agree to receive a scheduling email from our team.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Lenis smooth scroll + ScrollTrigger sync
+        const lenis = new Lenis({ lerp: 0.09, smoothWheel: true });
+        lenis.on("scroll", ScrollTrigger.update);
+        gsap.ticker.add((t) => lenis.raf(t * 1000));
+        gsap.ticker.lagSmoothing(0);
+
+        // Elements
+        const cursor = document.getElementById("custom-cursor");
+        const scrollProgress = document.getElementById("scroll-progress");
+        const timeEl = document.getElementById("inst-time-final");
+
+        // Loaded
+        document.body.classList.add("loaded");
+
+        // Cursor
+        window.addEventListener("mousemove", (e) => {
+            gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0.1, ease: "none" });
+        });
+
+        function bindCursorHover() {
+            document.querySelectorAll("a, button, .day, .time-slot").forEach(el => {
+                el.addEventListener("mouseenter", () => cursor.classList.add("active"));
+                el.addEventListener("mouseleave", () => cursor.classList.remove("active"));
+            });
+        }
+        bindCursorHover();
+
+        // Scroll progress
+        gsap.to(scrollProgress, {
+            scaleX: 1,
+            ease: "none",
+            scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.3 }
+        });
+
+
+
+        // ===== Contact deck (clipped inside Contact section => no bleed) =====
+        const contactTrigger = document.getElementById("section-contact");
+        const cardDeck = document.getElementById("card-deck");
+        const deckCards = Array.from(document.querySelectorAll("#card-deck .deck-card"));
+
+        let isHoveringContact = false;
+        let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+        let lerpX = 0, lerpY = 0;
+        let lastMouseX = mouseX;
+        let velocityX = 0;
+        let currentActiveZone = -1;
+        let topZIndex = 5000;
+        let lastShuffleTime = 0;
+        let ghostBreathing = 0;
+
+        const springTension = 0.12;
+        const shuffleCooldownMs = 250;
+
+        function initStack() {
+            deckCards.forEach((c, i) => {
+                gsap.set(c, {
+                    opacity: 0,
+                    scale: 1,
+                    z: -60 * i,
+                    x: 0,
+                    xPercent: -50,
+                    yPercent: -50,
+                    rotation: 0,
+                    zIndex: 1000 + i,
+                    display: "block",
+                    transformPerspective: 1500
+                });
+            });
+        }
+        initStack();
+
+        gsap.set(cardDeck, { visibility: "hidden", opacity: 0, scale: 0.85 });
+
+        window.addEventListener("mousemove", (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+
+        contactTrigger.addEventListener("mouseenter", () => {
+            isHoveringContact = true;
+            currentActiveZone = 0;
+            gsap.to(cardDeck, { visibility: "visible", opacity: 1, duration: 0.25 });
+
+            deckCards.forEach((c, i) => {
+                if (i === 0) {
+                    gsap.to(c, { opacity: 1, scale: 1, rotation: 0, z: 65, duration: 0.45, ease: "power2.out" });
+                } else {
+                    gsap.set(c, { opacity: 0, z: -60 * i });
+                }
+            });
+
+            // seed lerp to current local pointer
+            const rect = contactTrigger.getBoundingClientRect();
+            lerpX = mouseX - rect.left;
+            lerpY = mouseY - rect.top;
+        });
+
+        contactTrigger.addEventListener("mouseleave", () => {
+            isHoveringContact = false;
+            currentActiveZone = -1;
+
+            // instant hide
+            gsap.set(cardDeck, { visibility: "hidden", opacity: 0 });
+            deckCards.forEach(c => gsap.set(c, { opacity: 0, scale: 0.95, z: 0 }));
+        });
+
+        function executeShuffle(newIndex) {
+            const now = Date.now();
+            if (now - lastShuffleTime < shuffleCooldownMs) return;
+            lastShuffleTime = now;
+
+            const prevIndex = currentActiveZone;
+            currentActiveZone = newIndex;
+            topZIndex++;
+
+            const nextCard = deckCards[newIndex];
+            const prevCard = prevIndex !== -1 ? deckCards[prevIndex] : null;
+
+            if (prevCard && prevCard !== nextCard) {
+                const moveDir = velocityX > 0 ? 1 : -1;
+                const swipeX = moveDir * 100;
+                const swipeY = -60;
+                const pivotX = moveDir > 0 ? "0%" : "100%";
+
+                gsap.timeline()
+                    .to(prevCard, {
+                        x: swipeX, y: swipeY, z: 160,
+                        rotationZ: moveDir * 22,
+                        transformOrigin: `${pivotX} 100%`,
+                        boxShadow: "0 60px 150px rgba(0,0,0,0.35)",
+                        duration: 0.5,
+                        ease: "power2.out"
+                    })
+                    .set(prevCard, { zIndex: topZIndex - 100 })
+                    .to(prevCard, {
+                        x: (prevIndex < newIndex ? -1 : 1) * Math.abs(prevIndex - newIndex) * 40 + (Math.random() - 0.5) * 6,
+                        y: (Math.random() - 0.5) * 4,
+                        z: -45 * Math.abs(prevIndex - newIndex),
+                        rotationZ: (prevIndex < newIndex ? -1 : 1) * Math.abs(prevIndex - newIndex) * 5 + (Math.random() - 0.5) * 2,
+                        boxShadow: "0 20px 60px rgba(0,0,0,0.7)",
+                        opacity: 0.82,
+                        transformOrigin: "center center",
+                        duration: 0.9,
+                        ease: "power3.out",
+                        onUpdate: function () {
+                            if (this.progress() > 0.85) {
+                                gsap.to(cardDeck, { y: "+=1", duration: 0.08, yoyo: true, repeat: 1, ease: "power1.inOut" });
+                            }
+                        }
+                    });
+            }
+
+            deckCards.forEach((card, i) => {
+                if (i === currentActiveZone) {
+                    gsap.to(card, {
+                        opacity: 1, x: 0, y: 0, z: 65,
+                        rotationZ: 0, scale: 1,
+                        zIndex: topZIndex,
+                        boxShadow: "0 40px 120px rgba(0,0,0,0.6)",
+                        duration: 1.0,
+                        ease: "power4.out"
+                    });
+                } else if (i !== prevIndex) {
+                    gsap.to(card, {
+                        opacity: 0,
+                        scale: 0.88,
+                        x: 0, y: 0,
+                        z: -60 * Math.abs(i - currentActiveZone),
+                        rotationZ: 0,
+                        duration: 0.8,
+                        boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
+                        ease: "power3.out",
+                        overwrite: false
+                    });
+                }
+            });
+        }
+
+        gsap.ticker.add(() => {
+            if (!isHoveringContact) return;
+
+            const rect = contactTrigger.getBoundingClientRect();
+            // local pointer inside the contact section
+            const localTargetX = mouseX - rect.left;
+            const localTargetY = mouseY - rect.top;
+
+            ghostBreathing += 0.03;
+            const breathY = Math.sin(ghostBreathing) * 3;
+
+            lerpX += (localTargetX - lerpX) * springTension;
+            lerpY += (localTargetY - lerpY) * springTension;
+
+            velocityX = mouseX - lastMouseX;
+            lastMouseX = mouseX;
+
+            // containment padding: keep full card inside section
+            const padX = Math.min(260, Math.max(180, rect.width * 0.18));
+            const padY = Math.min(320, Math.max(220, rect.height * 0.22));
+
+            const clampedX = gsap.utils.clamp(padX, rect.width - padX, lerpX);
+            const clampedY = gsap.utils.clamp(padY, rect.height - padY, lerpY) + breathY;
+
+            gsap.set(cardDeck, { x: clampedX, y: clampedY });
+
+            // tilt (wind)
+            const tilt = gsap.utils.clamp(-18, 18, velocityX * 0.8);
+            gsap.to(cardDeck, { rotateZ: tilt, duration: 0.6, ease: "power2.out" });
+
+            // surface interaction
+            if (currentActiveZone !== -1) {
+                const activeCard = deckCards[currentActiveZone];
+                const localOffX = (localTargetX - lerpX) * 0.12;
+                const localOffY = (localTargetY - lerpY) * 0.12;
+                gsap.to(activeCard, {
+                    x: localOffX,
+                    y: localOffY,
+                    rotateX: -localOffY * 0.5,
+                    rotateY: localOffX * 0.5,
+                    duration: 0.5,
+                    ease: "power2.out"
+                });
+            }
+
+            // movement-based shuffle
+            const now = Date.now();
+            const movementDistance = Math.abs(velocityX);
+            if (movementDistance > 5 && now - lastShuffleTime > shuffleCooldownMs) {
+                if (velocityX > 0) {
+                    executeShuffle((currentActiveZone + 1) % deckCards.length);
+                } else if (velocityX < 0) {
+                    const nextIdx = currentActiveZone - 1 < 0 ? deckCards.length - 1 : currentActiveZone - 1;
+                    executeShuffle(nextIdx);
+                }
+            }
+        });
+
+        // ===== Clock =====
+        function updateClock() {
+            const now = new Date();
+            const time = now.toLocaleTimeString("en-GB", {
+                hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true
+            }).toUpperCase();
+            if (timeEl) timeEl.textContent = `INDIA ${time}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // ===== Booking calendar =====
+        const calendar = document.getElementById("calendar");
+        const label = document.getElementById("cal-label");
+        const prev = document.getElementById("prev");
+        const next = document.getElementById("next");
+        const timeCard = document.getElementById("time-card");
+
+        const bookingState = { current: new Date(), date: null, time: null };
+
+        function renderCalendar() {
+            if (!calendar) return;
+
+            calendar.innerHTML = "";
+            const y = bookingState.current.getFullYear();
+            const m = bookingState.current.getMonth();
+            label.textContent = bookingState.current.toLocaleString("en-US", { month: "long", year: "numeric" });
+
+            const first = new Date(y, m, 1);
+            const offset = (first.getDay() + 6) % 7; // Monday-first
+            const days = new Date(y, m + 1, 0).getDate();
+            const today = new Date().setHours(0, 0, 0, 0);
+
+            for (let i = 0; i < offset; i++) {
+                const empty = document.createElement("div");
+                empty.className = "day empty";
+                calendar.appendChild(empty);
+            }
+
+            for (let d = 1; d <= days; d++) {
+                const el = document.createElement("div");
+                el.className = "day";
+                el.textContent = d;
+
+                const cd = new Date(y, m, d);
+                if (cd < today) el.classList.add("disabled");
+
+                el.onclick = () => {
+                    document.querySelectorAll(".day").forEach(x => x.classList.remove("selected"));
+                    el.classList.add("selected");
+                    bookingState.date = cd;
+                    document.getElementById("confirm-date").textContent = cd.toDateString();
+                    gsap.to(timeCard, { opacity: 1, pointerEvents: "auto", duration: 0.5 });
+                };
+
+                calendar.appendChild(el);
+            }
+
+            bindCursorHover();
+        }
+
+        if (prev) prev.onclick = () => { bookingState.current.setMonth(bookingState.current.getMonth() - 1); renderCalendar(); };
+        if (next) next.onclick = () => { bookingState.current.setMonth(bookingState.current.getMonth() + 1); renderCalendar(); };
+
+        document.querySelectorAll(".time-slot").forEach(t => {
+            t.onclick = () => {
+                document.querySelectorAll(".time-slot").forEach(x => x.classList.remove("selected"));
+                t.classList.add("selected");
+                bookingState.time = t.textContent;
+                document.getElementById("confirm-time").textContent = bookingState.time;
+            };
+        });
+
+        document.getElementById("confirm-btn").addEventListener("click", () => {
+            if (!bookingState.date || !bookingState.time) {
+                alert("Please select a date and time.");
+                return;
+            }
+            alert(`Booking confirmed:\n${bookingState.date.toDateString()} — ${bookingState.time}`);
+        });
+
+        renderCalendar();
+
+        // ===== Scroll State Engine (ScrollStudio) =====
+        const ScrollStudio = {
+            mode: 'PHYSICS',
+            index: 0,
+            locked: false,
+            sections: [
+                document.getElementById('section-hero'),
+                document.getElementById('section-nexus'),
+                document.getElementById('section-vision'),
+                document.getElementById('section-motion'),
+                document.getElementById('section-philosophy')
+            ],
+
+            init() {
+                gsap.registerPlugin(Observer);
+
+                // Set initial states
+                this.sections.forEach((s, i) => {
+                    const content = s.querySelector('.brand-content, .philosophy-text');
+                    const bg = s.querySelector('.brand-bg img');
+
+                    gsap.set(s, {
+                        y: i === 0 ? '0vh' : '120vh',
+                        opacity: i === 0 ? 1 : 0,
+                        visibility: i === 0 ? 'visible' : 'hidden',
+                        zIndex: 100 + i
+                    });
+
+                    if (content) gsap.set(content, { opacity: i === 0 ? 1 : 0, y: i === 0 ? 0 : 50 });
+                    if (bg) gsap.set(bg, { scale: 1.15 });
+                    if (i === 0) s.classList.add('active-physics');
+                });
+
+                this.createObservers();
+                this.enterPhysics();
+                this.bindNav();
+            },
+
+            createObservers() {
+                this.physicsObserver = Observer.create({
+                    type: "wheel,touch,pointer",
+                    tolerance: 50,
+                    onDown: () => {
+                        if (this.locked) return;
+                        if (this.index < this.sections.length - 1) {
+                            this.transition(this.index + 1);
+                        } else {
+                            this.exitPhysics();
+                        }
+                    },
+                    onUp: () => {
+                        if (this.locked) return;
+                        if (this.index > 0) {
+                            this.transition(this.index - 1);
+                        }
+                    },
+                    preventDefault: true
+                });
+
+                // Top Catch Observer (re-enables physics if wheeling up at top of normal mode)
+                this.topCatch = Observer.create({
+                    type: "wheel,touch,pointer",
+                    onUp: () => {
+                        if (this.mode === 'NORMAL' && window.scrollY <= 5) {
+                            this.enterPhysics(true);
+                        }
+                    }
+                });
+
+                this.physicsObserver.disable();
+                this.topCatch.disable();
+            },
+
+            enterPhysics(fromBottom = false) {
+                this.mode = 'PHYSICS';
+                this.locked = false;
+                this.index = fromBottom ? this.sections.length - 1 : 0;
+
+                document.body.classList.remove('is-normal');
+                document.body.classList.add('is-physics');
+
+                lenis.stop();
+                this.physicsObserver.enable();
+                this.topCatch.disable();
+
+                // Reset positions
+                this.sections.forEach((s, i) => {
+                    gsap.set(s, {
+                        visibility: (i === this.index) ? 'visible' : 'hidden',
+                        y: (i === this.index) ? '0vh' : (i < this.index ? '-120vh' : '120vh'),
+                        opacity: (i === this.index) ? 1 : 0
+                    });
+                    if (i === this.index) s.classList.add('active-physics');
+                    else s.classList.remove('active-physics');
+
+                    const content = s.querySelector('.brand-content, .philosophy-text');
+                    if (content) gsap.set(content, { opacity: (i === this.index) ? 1 : 0, y: 0 });
+                });
+
+                // Hide Contact and Booking sections during physics mode
+                const contactSec = document.getElementById('section-contact');
+                const bookingSec = document.getElementById('section-booking');
+                if (contactSec) gsap.set(contactSec, { visibility: 'hidden', position: 'relative' });
+                if (bookingSec) gsap.set(bookingSec, { visibility: 'hidden' });
+            },
+
+            exitPhysics() {
+                if (this.locked) return;
+                this.locked = true;
+
+                const current = this.sections[this.index];
+                const content = current.querySelector('.brand-content, .philosophy-text');
+
+                const tl = gsap.timeline({
+                    onComplete: () => {
+                        this.mode = 'NORMAL';
+                        this.physicsObserver.disable();
+                        this.topCatch.enable();
+
+                        document.body.classList.remove('is-physics');
+                        document.body.classList.add('is-normal');
+
+                        lenis.start();
+                        lenis.resize();
+                        // ensure we start at the very top of normal content
+                        window.scrollTo(0, 0);
+
+                        this.sections.forEach(s => {
+                            s.classList.remove('active-physics');
+                            gsap.set(s, { visibility: 'hidden', pointerEvents: 'none' });
+                        });
+
+                        // Show Contact and Booking sections when exiting to normal mode
+                        const contactSec = document.getElementById('section-contact');
+                        const bookingSec = document.getElementById('section-booking');
+                        if (contactSec) gsap.set(contactSec, { visibility: 'visible', position: 'sticky' });
+                        if (bookingSec) gsap.set(bookingSec, { visibility: 'visible' });
+
+                        this.locked = false;
+                    }
+                });
+
+                tl.to(current, { y: '-120vh', opacity: 0, duration: 1.2, ease: "power4.inOut" })
+                    .to(content, { y: -100, opacity: 0, duration: 0.8 }, 0);
+            },
+
+            transition(targetIndex) {
+                if (this.locked || targetIndex < 0 || targetIndex >= this.sections.length) return;
+                this.locked = true;
+
+                const isDown = targetIndex > this.index;
+                const current = this.sections[this.index];
+                const next = this.sections[targetIndex];
+
+                const curContent = current.querySelector('.brand-content, .philosophy-text');
+                const nextContent = next.querySelector('.brand-content, .philosophy-text');
+                const nextBG = next.querySelector('.brand-bg img');
+
+                // Set dynamic z-index to ensure proper stacking
+                // Current section on top (sliding away), next section behind (being revealed)
+                gsap.set(current, { zIndex: 110 });
+                gsap.set(next, { zIndex: 100 });
+
+                // Prepare next
+                next.classList.add('active-physics');
+                gsap.set(next, { visibility: 'visible', opacity: 1, y: isDown ? '120vh' : '-120vh' });
+                if (nextContent) gsap.set(nextContent, { opacity: 0, y: isDown ? 80 : -80 });
+
+                const tl = gsap.timeline({
+                    onComplete: () => {
+                        current.classList.remove('active-physics');
+                        gsap.set(current, { visibility: 'hidden' });
+                        this.index = targetIndex;
+                        this.locked = false;
+                    }
+                });
+
+                // CORE PHYSICS: DROP AND BOUNCE
+                tl.to(next, { y: '0vh', duration: 1.2, ease: "expo.out" })
+                    .to(next, {
+                        y: isDown ? '-4vh' : '4vh', scaleY: 0.97, duration: 0.5, ease: "power3.out"
+                    })
+                    .to(next, {
+                        y: isDown ? '1vh' : '-1vh', scaleY: 1.01, duration: 0.35, ease: "power2.inOut"
+                    })
+                    .to(next, {
+                        y: '0vh', scaleY: 1, duration: 0.45, ease: "power4.out"
+                    });
+
+                // EDITORIAL REVEAL: Clean, straight slide-up
+                if (nextContent) {
+                    tl.to(nextContent, {
+                        opacity: 1, y: 0, duration: 1.2, ease: "power3.out"
+                    }, "-=1.1");
+                }
+
+                // BG Parallax
+                if (nextBG) {
+                    tl.fromTo(nextBG, { scale: 1.3, y: isDown ? 60 : -60 }, { scale: 1.15, y: 0, duration: 2.2, ease: "power2.out" }, 0);
+                }
+
+                // Push current out
+                tl.to(current, {
+                    y: isDown ? '-40vh' : '40vh', opacity: 0, duration: 1.2, ease: "expo.out"
+                }, 0);
+
+                if (curContent) {
+                    tl.to(curContent, { opacity: 0, y: -20, duration: 0.7 }, 0);
+                }
+            },
+
+            bindNav() {
+                document.querySelectorAll('a[href^="#"]').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        const targetId = link.getAttribute('href');
+                        if (targetId.startsWith('#section-contact') || targetId.startsWith('#section-booking')) {
+                            e.preventDefault();
+                            this.exitPhysicsAndJump(targetId);
+                        } else if (targetId === '#section-hero' || targetId === '#section-nexus') {
+                            e.preventDefault();
+                            this.enterPhysics();
+                            lenis.scrollTo(0, { immediate: true });
+                            this.transition(targetId === '#section-hero' ? 0 : 1);
+                        }
+                    });
+                });
+            },
+
+            exitPhysicsAndJump(targetId) {
+                // Immediate unlock and clear
+                this.mode = 'NORMAL';
+                this.physicsObserver.disable();
+                this.topCatch.enable();
+
+                document.body.classList.remove('is-physics');
+                document.body.classList.add('is-normal');
+
+                lenis.start();
+                lenis.resize();
+
+                this.sections.forEach(s => {
+                    s.classList.remove('active-physics');
+                    gsap.set(s, { visibility: 'hidden', pointerEvents: 'none', opacity: 0 });
+                });
+
+                lenis.scrollTo(targetId, { duration: 1.4, ease: "power4.inOut" });
+            }
+        };
+
+        // Initialize Everything
+        window.addEventListener('load', () => {
+            ScrollStudio.init();
+        });
+
+        // ===== Section reveal accents for normal mode =====
+        // (ScrollStudio handles active states deterministicly)
+
+        // Remove chaotic mouse/glass logic as per Editorial request
+
+        gsap.from("#section-booking .booking-card", {
+            scrollTrigger: { trigger: "#section-booking", start: "top 80%" },
+            y: 36, opacity: 0, stagger: 0.12, duration: 1.0, ease: "power3.out"
+        });
+
+        // ===== Contact Section Visibility Control =====
+        // Prevents Contact from staying permanently visible - makes it behave like a sequential page
+        const contactSection = document.getElementById('section-contact');
+        const bookingSection = document.getElementById('section-booking');
+
+        if (contactSection && bookingSection) {
+            // Initially hide Contact and disable sticky positioning
+            gsap.set(contactSection, {
+                visibility: 'hidden',
+                position: 'relative',
+                pointerEvents: 'none',
+                zIndex: 10
+            });
+
+            // ScrollTrigger to show Contact when entering its range
+            ScrollTrigger.create({
+                trigger: contactSection,
+                start: 'top bottom', // When Contact top hits viewport bottom
+                end: 'bottom top',   // When Contact bottom hits viewport top
+                onEnter: () => {
+                    // Contact entering - enable sticky and show
+                    gsap.set(contactSection, { position: 'sticky', visibility: 'visible' });
+                    gsap.to(contactSection, { pointerEvents: 'auto', duration: 0.1 });
+                },
+                onLeave: () => {
+                    // Scrolled past Contact downward - disable sticky
+                    gsap.to(contactSection, {
+                        pointerEvents: 'none',
+                        duration: 0.1,
+                        onComplete: () => gsap.set(contactSection, { position: 'relative', visibility: 'hidden' })
+                    });
+                },
+                onEnterBack: () => {
+                    // Scrolling back up into Contact - enable sticky and show
+                    gsap.set(contactSection, { position: 'sticky', visibility: 'visible' });
+                    gsap.to(contactSection, { pointerEvents: 'auto', duration: 0.1 });
+                },
+                onLeaveBack: () => {
+                    // Scrolled past Contact upward - disable sticky
+                    gsap.to(contactSection, {
+                        pointerEvents: 'none',
+                        duration: 0.1,
+                        onComplete: () => gsap.set(contactSection, { position: 'relative', visibility: 'hidden' })
+                    });
+                },
+                markers: false // Set to true for debugging
+            });
+
+            // Additional control: Lower z-index when Booking is in view to prevent bleed
+            ScrollTrigger.create({
+                trigger: bookingSection,
+                start: 'top center',
+                end: 'bottom center',
+                onEnter: () => {
+                    // Booking taking over - ensure Contact is behind
+                    gsap.set(contactSection, { zIndex: 5 });
+                },
+                onLeaveBack: () => {
+                    // Going back to Contact - restore z-index
+                    gsap.set(contactSection, { zIndex: 10 });
+                }
+            });
+        }
+
+        // ===== COMPREHENSIVE CODE PROTECTION SYSTEM =====
+        // Multi-layer protection against code inspection and DevTools
+
+        (function () {
+            'use strict';
+
+            // Layer 1: Disable Right-Click
+            document.addEventListener('contextmenu', e => e.preventDefault());
+
+            // Layer 2: Disable Key Combinations (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+S, Ctrl+Shift+C)
+            document.addEventListener('keydown', e => {
+                if (
+                    e.key === 'F12' ||
+                    (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+                    (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+                    (e.ctrlKey && e.shiftKey && e.key === 'C') ||
+                    (e.ctrlKey && e.key === 'U') ||
+                    (e.ctrlKey && e.key === 'S') ||
+                    (e.ctrlKey && e.key === 'u') ||
+                    (e.ctrlKey && e.key === 's')
+                ) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            // Layer 3: DevTools Detection via Window Size
+            const devtools = { isOpen: false };
+            const threshold = 160;
+
+            setInterval(() => {
+                const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+                const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+
+                if (widthThreshold || heightThreshold) {
+                    devtools.isOpen = true;
+                    document.body.innerHTML = '';
+                    window.location.href = 'about:blank';
+                }
+            }, 500);
+
+            // Layer 4: Console Clear Loop
+            setInterval(() => {
+                console.clear();
+                console.log('%c', 'font-size: 1px;');
+            }, 100);
+
+            // Layer 5: Detect DevTools via Console Timing
+            let checkStatus;
+            const element = new Image();
+            Object.defineProperty(element, 'id', {
+                get: function () {
+                    checkStatus = true;
+                    document.body.innerHTML = '';
+                    window.location.href = 'about:blank';
+                }
+            });
+
+            setInterval(() => {
+                checkStatus = false;
+                console.log(element);
+                if (checkStatus) {
+                    document.body.innerHTML = '';
+                    window.location.href = 'about:blank';
+                }
+            }, 1000);
+
+            // Layer 6: Debugger Detection
+            setInterval(() => {
+                const before = new Date();
+                debugger;
+                const after = new Date();
+                const diff = after - before;
+
+                if (diff > 100) {
+                    document.body.innerHTML = '';
+                    window.location.href = 'about:blank';
+                }
+            }, 1000);
+
+            // Layer 7: Disable Text Selection
+            document.addEventListener('selectstart', e => e.preventDefault());
+            document.addEventListener('mousedown', e => {
+                if (e.detail > 1) {
+                    e.preventDefault();
+                }
+            });
+
+            // Layer 8: Detect Firebug/Inspector
+            const checkInspect = () => {
+                if (window.Firebug && window.Firebug.chrome && window.Firebug.chrome.isInitialized) {
+                    document.body.innerHTML = '';
+                    window.location.href = 'about:blank';
+                }
+            };
+            setInterval(checkInspect, 1000);
+
+            // Layer 9: Block Frame/Iframe Inspection
+            if (window.top !== window.self) {
+                window.top.location = window.self.location;
+            }
+
+            // Layer 10: Console Warning
+            console.log('%cSTOP!', 'color: red; font-size: 60px; font-weight: bold;');
+            console.log('%cThis is a browser feature intended for developers. If someone told you to copy-paste something here, it is a scam.', 'font-size: 20px;');
+
+            // Layer 11: Disable Ctrl+P (Print)
+            document.addEventListener('keydown', e => {
+                if (e.ctrlKey && e.key === 'p') {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+        })();
+    </script>
+</body>
+
+</html>
