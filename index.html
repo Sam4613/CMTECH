@@ -1485,9 +1485,8 @@
 
                         lenis.start();
                         lenis.resize();
-                        // ensure we start at the very top of normal content
-                        window.scrollTo(0, 0);
 
+                        // Hide all physics sections
                         this.sections.forEach(s => {
                             s.classList.remove('active-physics');
                             gsap.set(s, { visibility: 'hidden', pointerEvents: 'none' });
@@ -1498,6 +1497,14 @@
                         const bookingSec = document.getElementById('section-booking');
                         if (contactSec) gsap.set(contactSec, { visibility: 'visible', position: 'sticky' });
                         if (bookingSec) gsap.set(bookingSec, { visibility: 'visible' });
+
+                        // Scroll to Contact section (not top of page)
+                        if (contactSec) {
+                            const contactOffset = contactSec.offsetTop;
+                            window.scrollTo(0, contactOffset);
+                        } else {
+                            window.scrollTo(0, 0);
+                        }
 
                         this.locked = false;
                     }
@@ -1806,6 +1813,5 @@
         })();
     </script>
 </body>
-
 
 </html>
